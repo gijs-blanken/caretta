@@ -7,9 +7,9 @@ rbac:
   pspEnabled: true
   sccEnabled: true
 image:
-  repository: quay.io/groundcover/caretta
+  repository: 172.31.39.171:32000/caretta
   pullPolicy: Always
-  tag: ""
+  tag: latest
 
 imagePullSecrets: []
 nameOverride: ""

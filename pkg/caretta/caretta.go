@@ -22,7 +22,7 @@ var (
 		Name: "caretta_links_observed",
 		Help: "total bytes_sent value of links observed by caretta since its launch",
 	}, []string{
-		"link_id", "client_id", "client_name", "client_namespace", "client_kind", "server_id", "server_name", "server_namespace", "server_kind", "server_port", "role",
+		"link_id", "client_id", "client_name", "client_namespace", "client_kind", "server_id", "server_name", "server_namespace", "server_kind", "server_port", "role", "pid",
 	})
 )
 

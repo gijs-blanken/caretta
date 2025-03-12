@@ -10,7 +10,8 @@ RUN make build ARCH=$TARGETARCH
 FROM alpine:3.17
 
 WORKDIR /app
-COPY --from=builder build/bin/caretta ./
+#COPY --from=builder build/bin/caretta ./
+COPY bin/caretta ./
 
 VOLUME /sys/kernel/debug
 
