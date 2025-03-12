@@ -176,6 +176,7 @@ func (tracer *LinksTracer) deleteAndStoreConnection(conn *ConnectionIdentifier, 
 func (tracer *LinksTracer) reduceConnectionToLink(connection ConnectionIdentifier) (NetworkLink, error) {
 	var link NetworkLink
 	link.Role = connection.Role
+	link.Pid = connection.Pid
 
 	srcWorkload := tracer.resolver.ResolveIP(IP(connection.Tuple.SrcIp).String())
 	dstWorkload := tracer.resolver.ResolveIP(IP(connection.Tuple.DstIp).String())

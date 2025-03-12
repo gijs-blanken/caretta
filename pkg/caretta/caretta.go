@@ -118,6 +118,7 @@ func (caretta *Caretta) handleLink(link *NetworkLink, throughput uint64) {
 		"server_kind":      link.Server.Kind,
 		"server_port":      strconv.Itoa(int(link.ServerPort)),
 		"role":             strconv.Itoa(int(link.Role)),
+		"pid":              link.Pid,
 	}).Set(float64(throughput))
 }
 
