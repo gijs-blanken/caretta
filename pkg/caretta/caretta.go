@@ -1,12 +1,16 @@
 package caretta
 
 import (
+	"bufio"
 	"context"
+	"fmt"
 	"hash/fnv"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	caretta_k8s "github.com/groundcover-com/caretta/pkg/k8s"
@@ -105,6 +109,48 @@ func (caretta *Caretta) Stop() {
 
 }
 
+var (
+	uidOnce         sync.Once
+	cachedServerUID string
+)
+
+// readFirstLine reads the first line from a file.
+func readFirstLine(filePath string) (string, error) {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return "", err
+	}
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			log.Printf("Error closing file: %v", err)
+		}
+	}(f)
+
+	scanner := bufio.NewScanner(f)
+	if scanner.Scan() {
+		return scanner.Text(), nil
+	}
+
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+	return "", fmt.Errorf("file is empty")
+}
+
+// getCachedServerUID reads and caches the UID.
+func getCachedServerUID() string {
+	uidOnce.Do(func() {
+		uid, err := readFirstLine("/etc/server_uid")
+		if err != nil {
+			log.Printf("Error reading server UID: %v. Using 'unknown' instead.", err)
+			uid = "unknown"
+		}
+		cachedServerUID = uid
+	})
+	return cachedServerUID
+}
+
 func (caretta *Caretta) handleLink(link *NetworkLink, throughput uint64) {
 	linksMetrics.With(prometheus.Labels{
 		"link_id":          strconv.Itoa(int(fnvHash(link.Client.Name+link.Client.Namespace+link.Server.Name+link.Server.Namespace) + link.Role)),
@@ -119,6 +165,7 @@ func (caretta *Caretta) handleLink(link *NetworkLink, throughput uint64) {
 		"server_port":      strconv.Itoa(int(link.ServerPort)),
 		"role":             strconv.Itoa(int(link.Role)),
 		"pid":              strconv.Itoa(int(link.Pid)),
+		"server_uid":       getCachedServerUID(),
 	}).Set(float64(throughput))
 }
 
