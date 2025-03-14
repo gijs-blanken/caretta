@@ -41,6 +41,9 @@ spec:
               name: proc
             - mountPath: /sys/kernel/debug
               name: debug
+            - mountPath: /etc/server_uid
+              readOnly: true
+              name: server-uid
           ports:
             - name: prom-metrics
               containerPort: {{ .Values.prometheusPort }}
@@ -75,3 +78,7 @@ spec:
         - name: debug
           hostPath:
             path: /sys/kernel/debug
+        - name: server-uid
+          hostPath:
+            path: /etc/server_uid
+            type: File

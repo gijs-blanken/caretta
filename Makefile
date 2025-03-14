@@ -4,7 +4,7 @@ DOCKER_BIN:=docker
 BPF2GO_BINARY := ${BIN_DIR}/bpf2go
 BPF2GO_VERSION := 0.9.0
 REPODIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-UIDGID := $(shell stat -c '%u:%g' ${REPODIR})
+UIDGID := $(shell gstat -c '%u:%g' ${REPODIR})
 PROJECT_DIRNAME := $(shell basename ${REPODIR})
 CILIUM_EBPF_DIRECTORY := /tmp/cilium-ebpf
 BUILD_SCRIPTS_DIRECTORY=scripts/build
@@ -54,3 +54,34 @@ generate_ebpf_in_docker: ${BIN_DIR}
 
 pkg/tracing/bpf_bpfel%.go: pkg/tracing/ebpf/caretta.bpf.c
 	$(MAKE) generate_ebpf
+
+# -----------------------
+
+VMNAMES := gijs1 gijs2 gijs3
+
+VM_gijs1_HOST = 35.156.26.48
+VM_gijs1_USER = ubuntu
+VM_gijs1_KEY  = ~/.ssh/gijs1.pem
+
+VM_gijs2_HOST = 35.159.165.52
+VM_gijs2_USER = ubuntu
+VM_gijs2_KEY  = ~/.ssh/gijs1.pem
+
+VM_gijs3_HOST = 3.127.217.236
+VM_gijs3_USER = ubuntu
+VM_gijs3_KEY  = ~/.ssh/gijs1.pem
+
+ssh-%:
+	@echo "SSH into VM '$*'..."
+	ssh -o ServerAliveInterval=60 -i $(VM_$*_KEY) $(VM_$*_USER)@$(VM_$*_HOST) "$(CMD)"
+
+fetch-%:
+	@echo "Fetching file from VM '$*' to host..."
+	scp -i $(VM_$*_KEY) $(VM_$*_USER)@$(VM_$*_HOST):/home/ubuntu/caretta/bin/* ~/Development/uu/thesis/caretta/bin/
+
+
+build-for-docker:
+	@$(MAKE) ssh-gijs2 CMD="cd ~/caretta && git pull && make build && exit"; \
+	$(MAKE) fetch-gijs2; \
+	docker build -t host.docker.internal:5000/caretta:latest -f Dockerfile . --platform linux/amd64; \
+	docker push host.docker.internal:5000/caretta:latest
